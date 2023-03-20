@@ -1,0 +1,372 @@
+﻿@model RiponR51.DoctorPatientsVM
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<h4>DoctorPatientsVM</h4>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Index" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Doctor_Code" class="control-label"></label>
+                        <input asp-for="Doctor_Code" class="form-control" />
+                        <span asp-validation-for="Doctor_Code" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="DoctorName" class="control-label"></label>
+                        <input asp-for="DoctorName" class="form-control" />
+                        <span asp-validation-for="DoctorName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Gender" class="control-label"></label>
+                        <input asp-for="Gender" class="form-control" />
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Address" class="control-label"></label>
+                        <input asp-for="Address" class="form-control" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Tel" class="control-label"></label>
+                        <input asp-for="Tel" class="form-control" />
+                        <span asp-validation-for="Tel" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Designation" class="control-label"></label>
+                        <input asp-for="Designation" class="form-control" />
+                        <span asp-validation-for="Designation" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Image" class="control-label"></label>
+                        <input type="file" name="Image" id="Image" class="form-control" />
+                        <span asp-validation-for="Image" class="text-danger"></span>
+                        <br />
+                        <img id="MyImage" width="100" />
+
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <partial name="_PartialPage"/> 
+                    <div id="Patients"></div>
+                    <div class="form-group">
+                        <label asp-for="Patient_Id" class="control-label"></label>
+                        <input asp-for="Patient_Id" class="form-control" />
+                        <span asp-validation-for="Patient_Id" class="text-danger" id="Patientid_Error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="PatientName" class="control-label"></label>
+                        <input asp-for="PatientName" class="form-control" />
+                        <span asp-validation-for="PatientName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Gender" class="control-label"></label>
+                        <input asp-for="Gender" class="form-control" />
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Number" class="control-label"></label>
+                        <input asp-for="Number" class="form-control" />
+                        <span asp-validation-for="Number" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Date" class="control-label"></label>
+                        <input type="Date" name="Date" id="Date" class="form-control" />
+                        <span asp-validation-for="Date" class="text-danger"></span>
+                    </div>
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="Active" /> @Html.DisplayNameFor(model => model.Active)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <input type="button" id="add" value="Add" class="btn btn-primary" />
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-2 col-md-10">
+        <button type='button' id="save" class="btn btn-lg btn-default btn-primary">Save</button>
+        <button type='button' id="deleteall" class="btn btn-lg btn-default btn-primary">Remove</button>
+    </div>
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<script>
+    $(document).ready(function () {
+        var act = [];
+        var index = -1;
+
+        $("#Doctor_Code").keyup(function () {
+            //alert('/Doctor_Patient/GetDoctor?doctor_code=' + $("#Doctor_Code").val());
+            getAjax('/DoctorPatients/GetDoctor?doctor_code=' + $("#Doctor_Code").val(), function (r) {
+                if (r != "") {
+                    $("#DoctorName").val(r[0].DoctorName);
+                    $("#Gender").val(r[0].Gender);
+                    $("#Address").val(r[0].Address);
+                    $("#Tel").val(r[0].Tel);
+                    $("#Designation").val(r[0].Designation);
+                    //alert("/Uploads/" + r[0].Image);
+                    $("#MyImage").attr("src", "/Uploads/" + r[0].Image);
+
+                }
+                else {
+                    $("#DoctorName").val("");
+                    $("#Location").val("");
+
+                }
+                showItems();
+            })
+        })
+      
+
+
+
+        $("#Patient_Id").keyup(function () {
+            $.ajax('/DoctorPatients/Patient_Exists?id=' + $("#Patient_Id").val(),
+                {
+                    data: {},
+                    dataType: 'json',
+                    method: 'get',
+                    timeout: 500,
+                    success: function (data, status, xhr) {
+                        if (data == "1") {
+                            $("#Patientid_Error").html("Exists");
+                        }
+                        else {
+                            $("#Patientid_Error").html("");
+                        }
+                    }
+                });
+        });
+
+        function showItems() {
+            // alert('/Doctor_Patient/GetPatient?doctor_code=' + $("#Doctor_Code").val());
+            getAjax('/DoctorPatients/GetPatient?doctor_code=' + $("#Doctor_Code").val(), function (data) {
+                act = data;
+                items();
+            })
+        }
+
+        function items() {
+            var j = 0;
+            var a = "<table class='table'><tr><th>Id</th><th>Name</th><th>Gender</th><th>Number</th><th>Date</th><th>Active</th><th></th></tr>";
+            for (d in act) {
+                today = ConvertDate(act[d].Date);
+                //alert(act[d].Active)
+                a +=
+                    `<tr><td>${act[d].Patient_Id}</td><td>${act[d].PatientName}</td><td>${act[d].Gender}</td><td>${act[d].Number}</td><td>${today}</td><td>${act[d].Active}</td><td><button type='button' onclick="edit1('${act[d].Patient_Id}','${act[d].PatientName}','${act[d].Gender}','${act[d].Number}',${j},'${today}','${act[d].Active}')">Edit</button><button type='button' onclick="remove(${j})">Remove</button></td></tr>`;
+                j++;
+
+            }
+            a += "</table>";
+            $("#Patients").html(a);
+        }
+
+
+
+        $("#add").click(function () {
+            var dt = $("#Date").val();
+            //alert($("#Active").is(":checked"))
+            if ($("#Active").is(":checked") == true)
+                a = true;
+            else
+                a = false;
+                //alert(a);
+            if ($("#add").val() == "Add") {
+                act.push({ "Patient_Id": $("#Patient_Id").val(), "PatientName": $("#PatientName").val(), "Gender": $("#Gender").val(), "Number": $("#Number").val(), "Date": dt, "Active": a });
+                console.log(JSON.stringify(act));
+                items();
+            }
+            else {
+                v = { "Patient_Id": $("#Patient_Id").val(), "PatientName": $("#PatientName").val(), "Gender": $("#Gender").val(), "Number": $("#Number").val(), "Date": dt, "Active": a };
+                act[index] = v;
+                items();
+                $("#add").val("Add");
+            }
+        });
+
+        
+
+
+
+
+
+        
+        $("#save").click(function () {
+            fname = "";
+
+            //var d = $("#Image1").attr('src');
+            //if (d == '' || d == undefined) {
+            //    alert("Please select Image");
+            //    return;
+            //}
+            //else {
+            //    var src = $('#Image1').attr('src'); //"images/banner/Penguins.jpg"
+            //    var arr = src.split('/');      //["images","banner","Penguins.jpg"]
+            //    fname = arr[arr.length - 1]; //Penguins.jpg
+            //    //var Name = file.split('.')[0];  // "Penguins"
+            //}
+
+            var i = 0;
+            if ($('#Image').get(0).files.length !== 0) {
+                var files = $("#Image").get(0).files;
+                var fname = files[0].name
+                var fileData = new FormData();
+                fileData.append(files[0].name, files[0]);
+                $.ajax({
+                    url: '/DoctorPatients/UploadFiles',
+                    type: "POST",
+                    contentType: false,
+                    processData: false,
+                    data: fileData,
+                    success: function (result) {
+                        //child table
+
+                    },
+                });
+            }
+            //alert(fname)
+            getAjax('/DoctorPatients/DeleteAll/' + $("#Doctor_Code").val(), function (d) {
+
+                //if ($("#Active").is(":checked") == "true")
+                //    a = true;
+                //else
+                //    a = false;
+                var data1 = {
+                    Doctor_Code: $("#Doctor_Code").val(),
+                    DoctorName: $("#DoctorName").val(),
+                    Gender: $("#Gender").val(),
+                    Address: $("#Address").val(),
+                    Tel: $("#Tel").val(),
+                    Designation: $("#Designation").val(),
+                    Image: fname,
+                    Patients: act
+                };
+                console.log(JSON.stringify(data1));
+                $.ajax({
+                    url: '/DoctorPatients/AddDoctorPatients',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    type: "POST",
+                    data: JSON.stringify(data1),
+                    success: function (result) {
+                        if (result == "Error") {
+                            alert("Transaction Error")
+                        }
+                        else
+                            window.location = "/myroute";
+
+                    },
+                });
+
+
+            });
+          
+        });
+
+
+
+        //$("#save").click(function () {
+        //    var i = 0;
+        //    getAjax('/Doctor_Patient/DeleteAll/' + $("#Doctor_Code").val(), function (data) {
+        //        //parent table insert
+        //        var files = $("#Image").get(0).files;
+        //        var fname = files[0].name;
+        //        //alert(fname);
+        //        url = `Doctor_Code=${$("#Doctor_Code").val()}&DoctorName=${$("#DoctorName").val()}&Gender=${$("#Gender").val()}&Address=${$("#Address").val()}&Tel=${$("#Tel").val()}&Designation=${$("#Designation").val()}&Image=${fname}`;
+        //        getAjax('/Doctor_Patient/InsertDoctor?' + url, function (data) {
+
+        //            var fileData = new FormData();
+        //            fileData.append(files[0].name, files[0]);
+        //            $.ajax({
+        //                url: '/Doctor_Patient/UploadFiles',
+        //                type: "POST",
+        //                contentType: false,
+        //                processData: false,
+        //                data: fileData,
+        //                success: function (result) {
+
+        //                    //child table insert
+        //                    for (d in act) {
+        //                        console.log(`Patient_Id=${act[d].Patient_Id}&PatientName=${act[d].PatientName}&Doctor_Code=${$("#Doctor_Code").val()}&Gender=${act[d].Gender}&Number=${act[d].Number}&Date=${act[d].Date}&Active=${act[d].Active}`);
+        //                        url1 = `Patient_Id=${act[d].Patient_Id}&PatientName=${act[d].PatientName}&Doctor_Code=${$("#Doctor_Code").val()}&Gender=${act[d].Gender}&Number=${act[d].Number}&Date=${act[d].Date}&Active=${act[d].Active}`;
+        //                        getAjax('/Doctor_Patient/InsertPatient?' + url1, function (data) {
+        //                            i++;
+        //                            if (i == act.length) {
+        //                                act = [];
+        //                                items();
+        //                                window.location = "/Doctor_Patient/index";//page refresh
+        //                            }
+        //                        });
+        //                    }
+
+        //                },
+        //            });
+
+
+
+
+        //        });
+        //    });
+        //});
+
+
+        $("#deleteall").click(function () {
+            alert("OK")
+            getAjax('/DoctorPatients/DeleteAll/' + $("#Doctor_Code").val(), function (d) {
+                window.location = '/myroute/';//refresh
+            });
+        });
+        remove = function (j) {
+            act.splice(j, 1);
+            items();
+        }
+        edit1 = function (a, b, c, d, e, f, g) {
+            $("#Patient_Id").val(a);
+            $("#PatientName").val(b);
+            $("#Gender").val(c);
+            $("#Number").val(d);
+            index = e;
+            $("#Date").val(f);
+            $("#Active").val(g);
+            $("#add").val("Edit");
+        }
+        function ConvertDate(f) {
+            value = new Date(f);
+            var dd = String(value.getDate()).padStart(2, '0');
+            var mm = String(value.getMonth() + 1).padStart(2, '0');
+            var yyyy = value.getFullYear();
+            today = yyyy + "-" + mm + "-" + dd;
+            return today;
+        }
+        function getAjax(url, callback) {
+            $.ajax({
+                dataType: "json",
+                url: url,
+                success: callback
+            });
+        }
+    })
+
+</script>
+
